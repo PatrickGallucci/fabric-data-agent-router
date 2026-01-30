@@ -1,0 +1,119 @@
+{
+  "$schema": "./fabric-agents-schema.json",
+  "version": "1.0",
+  "description": "Configuration for Microsoft Fabric Data Agents used by the Router",
+  "agents": [
+    {
+      "id": "Services-Agent",
+      "name": "Services-Agent",
+      "description": "Services agent. Handles queries about services data.",
+      "mcpServerUrl": "https://api.fabric.microsoft.com/v1/mcp/workspaces/{workspaceId}/dataagents/{agentId}/agent",
+      "workspaceId": "779e4068-f8d3-4c2d-98ef-d463fdc351b5",
+      "agentId": "8bec1016-6d9a-471e-8a8f-fa74db83338e",
+      "domains": [
+        "customer",
+        "service call"
+      ],
+      "dataSources": [
+        {
+          "type": "SemanticModel",
+          "name": "Services-Model"
+        },
+        {
+          "type": "Lakehouse",
+          "name": "bronze_lh",
+          "tables": [ "Employee_schedule", "service_catalog", "service_zones", "service_packages", "service_history", "service_categories", "service_calls", "service_agreements", "invoices", "customer", "customer_zone_assignment", "customer_equipment", "customer_feedback" ]
+        }
+      ],
+      "exampleQueries": [
+        "What customer had the most service calls?",
+        "Show me the top 10 customers by revenue",
+        "How is the Services pipeline looking?"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "Employee-Agent",
+      "name": "Employee-Agent",
+      "description": "HEmployee agent. Handles queries about employee data, headcount, turnover rates, compensation analysis, recruiting metrics, performance reviews, and organizational structure. Data sources include Employee Warehouse and Employee Semantic Model.",
+      "mcpServerUrl": "https://api.fabric.microsoft.com/v1/mcp/workspaces/{workspaceId}/dataagents/{agentId}/agent",
+      "workspaceId": "779e4068-f8d3-4c2d-98ef-d463fdc351b5",
+      "agentId": "dcbfdd62-cbb5-4099-b388-852f4fbe64de",
+      "domains": [
+        "employees",
+        "headcount",
+        "turnover",
+        "attrition",
+        "compensation",
+        "salary",
+        "benefits",
+        "recruiting",
+        "hiring",
+        "performance",
+        "reviews",
+        "departments",
+        "organization"
+      ],
+      "dataSources": [
+        {
+          "type": "SemanticModel",
+          "name": "Employee-Model"
+        },
+        {
+          "type": "Lakehouse",
+          "name": "bronze_lh",
+          "tables": [ "work_orders", "Employee", "Employee_skills", "certifications" ]
+        }
+      ],
+      "exampleQueries": [
+        "What is our current headcount?",
+        "Show me turnover rates by department"
+      ],
+      "enabled": true
+    },
+    {
+      "id": "Product-Agent",
+      "name": "Product-Agent",
+      "description": "Product agent. Handles queries about Product, inventory, supplier performance, order fulfillment, budget tracking, and warehouse management. Data sources include Product Semantic Model and Product Lakehouse.",
+      "mcpServerUrl": "https://api.fabric.microsoft.com/v1/mcp/workspaces/{workspaceId}/dataagents/{agentId}/agent",
+      "workspaceId": "779e4068-f8d3-4c2d-98ef-d463fdc351b5",
+      "agentId": "90fe0712-ed30-4ab7-9433-6944ae3d34c5",
+      "domains": [
+        "Product",
+        "budget",
+        "supplier",
+        "warehouse",
+        "inventory"
+      ],
+      "dataSources": [
+        {
+          "type": "SemanticModel",
+          "name": "Product-Model"
+        },
+        {
+          "type": "Lakehouse",
+          "name": "bronze_lh",
+          "tables": [ "warehouse_locations", "suppliers", "purchase_orders", "purchase_order_lines", "Product_transactions", "Product_inventory", "bin_locations", "Product_suppliers", "Product_categories" ]
+        }
+      ],
+      "exampleQueries": [
+        "What Product have low inventory?",
+        "What Product supplier has the most Product",
+        "What are our top Product expense?",
+        "What Product has the highest inventory?"
+      ],
+      "enabled": true
+    }
+  ],
+  "routingConfig": {
+    "defaultAgent": "Services-Agent",
+    "confidenceThreshold": 0.7,
+    "allowMultipleAgents": false,
+    "maxRetries": 3,
+    "timeoutSeconds": 60
+  },
+  "authentication": {
+    "type": "ManagedIdentity",
+    "fallbackToInteractive": true
+  }
+}
