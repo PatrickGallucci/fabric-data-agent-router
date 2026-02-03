@@ -1,11 +1,9 @@
 ﻿using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json;
 using Azure.Core;
 using Azure.Identity;
 using FabricDataAgentRouter.Models;
-using Microsoft.Extensions.Logging;
 
 namespace FabricDataAgentRouter.Services;
 

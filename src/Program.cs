@@ -1,10 +1,6 @@
-using System.Text.Json;
 using FabricDataAgentRouter.Models;
 using FabricDataAgentRouter.Services;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+
 
 namespace FabricDataAgentRouter;
 
@@ -18,8 +14,8 @@ public class Program
         Console.WriteLine(@"
 ______________________________________________________________________________
                                                                                
-         FABRIC DATA AGENT ROUTER                                    
-         Intelligent Query Routing for Enterprise Data                         
+    FABRIC DATA AGENT ROUTER                                    
+    Intelligent Query Routing for Enterprise Data                         
 ______________________________________________________________________________                                                                               
 
 ");
@@ -29,10 +25,43 @@ ______________________________________________________________________________
         using var scope = host.Services.CreateScope();
         var services = scope.ServiceProvider;
 
+        IConfiguration configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false)
+            .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production"}.json", optional: true)
+            .AddEnvironmentVariables()
+            .Build();
+
+        // Create DI container
+        IServiceCollection appServices = new ServiceCollection();
+        appServices.AddSingleton<IConfiguration>(configuration);
+
+        // Add logging
+        appServices.AddLogging(loggingBuilder =>
+        {
+            loggingBuilder.AddConsole();
+            loggingBuilder.SetMinimumLevel(LogLevel.Information);
+        });
+
+        // Add Application Insights
+        appServices.AddApplicationInsightsTelemetryWorkerService(options =>
+        {
+            options.ConnectionString = configuration["ApplicationInsights:ConnectionString"];
+        });
+
+        // Build service provider
+        IServiceProvider serviceProvider = appServices.BuildServiceProvider();
+
+        // Get services
+        var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+        var telemetryClient = serviceProvider.GetRequiredService<TelemetryClient>();
+
         try
         {
-            var logger = services.GetRequiredService<ILogger<Program>>();
-            var configuration = services.GetRequiredService<IConfiguration>();
+            logger.LogInformation("Application starting...");
+
+            // var logger = services.GetRequiredService<ILogger<Program>>();
+            // var configuration = services.GetRequiredService<IConfiguration>();
 
             // Load Fabric agents configuration
             var configPath = configuration["FabricAgentsConfigPath"] ?? "../config/fabric-agents.json";
@@ -68,8 +97,8 @@ ______________________________________________________________________________
         }
         catch (Exception ex)
         {
-            var logger = services.GetRequiredService<ILogger<Program>>();
             logger.LogError(ex, "Application error");
+            telemetryClient.TrackException(ex);
             Console.WriteLine($"\nError: {ex.Message}");
 
             if (ex.InnerException != null)
@@ -78,6 +107,12 @@ ______________________________________________________________________________
             }
 
             Environment.Exit(1);
+        }
+        finally
+        {
+            // CRITICAL: Flush telemetry before exit
+            telemetryClient.Flush();
+            await Task.Delay(5000);
         }
     }
 
@@ -235,4 +270,5 @@ ______________________________________________________________________________
 
 ");
     }
+
 }

@@ -1,5 +1,4 @@
 ﻿using FabricDataAgentRouter.Models;
-using Microsoft.Extensions.Logging;
 
 namespace FabricDataAgentRouter.Services;
 

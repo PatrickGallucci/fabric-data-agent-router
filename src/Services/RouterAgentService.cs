@@ -1,9 +1,7 @@
-using System.Text.Json;
 using Azure;
 using Azure.AI.Agents.Persistent;
 using Azure.Identity;
 using FabricDataAgentRouter.Models;
-using Microsoft.Extensions.Logging;
 
 namespace FabricDataAgentRouter.Services;
 
@@ -46,10 +44,11 @@ public class RouterAgentService : IDisposable
     /// </summary>
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
+        var credential = new InteractiveBrowserCredential();
         _logger.LogInformation("Initializing Router Agent Service...");
 
         // Create Persistent Agents Client
-        _agentsClient = new PersistentAgentsClient(_projectEndpoint, new DefaultAzureCredential());
+        _agentsClient = new PersistentAgentsClient(_projectEndpoint, credential);
 
         // Build function tools for each enabled agent
         var tools = BuildFunctionTools().ToList();
